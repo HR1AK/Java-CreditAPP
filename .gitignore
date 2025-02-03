@@ -1,0 +1,13 @@
+target/
+*.class
+.idea/
+*.iml
+*.log
+*~
+*.swp
+.mvn/
+mvnw*
+.gradle/
+build/
+.DS_Store
+Thumbs.db
