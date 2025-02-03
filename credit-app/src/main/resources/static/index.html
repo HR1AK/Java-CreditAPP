@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кредитное приложение</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Кредитное приложение</h1>
+
+        <h2>Оставить заявку</h2>
+        <form id="applicationForm">
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" placeholder="Введите имя" required><br>
+
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" placeholder="Введите фамилию" required><br>
+
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" placeholder="Введите отчество" required><br>
+
+            <label for="passportNumber">Паспортные данные:</label>
+            <input type="text" id="passportNumber" placeholder="Введите паспортные данные" required><br>
+
+            <label for="maritalStatus">Семейное положение:</label>
+            <input type="text" id="maritalStatus" placeholder="Введите семейное положение" required><br>
+
+            <label for="registrationAddress">Адрес регистрации:</label>
+            <input type="text" id="registrationAddress" placeholder="Введите адрес регистрации" required><br>
+
+            <label for="phoneNumber">Телефон:</label>
+            <input type="text" id="phoneNumber" placeholder="Введите телефон" required><br>
+
+            <label for="employmentInfo">Место работы:</label>
+            <input type="text" id="employmentInfo" placeholder="Введите место работы" required><br>
+
+            <label for="requestedAmount">Запрашиваемая сумма:</label>
+            <input type="number" id="requestedAmount" placeholder="Введите сумму" required><br>
+
+            <label for="applicationDate">Дата подачи заявки:</label>
+            <input type="date" id="applicationDate" required><br>
+
+            <button type="submit">Отправить заявку</button>
+        </form>
+
+        <h2>Список клиентов</h2>
+        <button onclick="getClients()">Показать всех клиентов</button>
+        <table id="clientsTable">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Телефон</th>
+                    <th>Паспортные данные</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    
+    <div class="container">
+        <h2>Список заявок со статусом одобрения</h2>
+        <button onclick="getApprovedApplications()">Показать заявки</button>
+        <table id="applicationsTable">
+            <thead>
+                <tr>
+                    <th>Номер заявки</th>
+                    <th>Дата подачи</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+   
+
+    <script>
+        const apiBaseUrl = "http://localhost:8080/api";
+
+        // Функция для отправки заявки
+        document.getElementById("applicationForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const middleName = document.getElementById("middleName").value;
+            const passportNumber = document.getElementById("passportNumber").value;
+            const maritalStatus = document.getElementById("maritalStatus").value;
+            const registrationAddress = document.getElementById("registrationAddress").value;
+            const phoneNumber = document.getElementById("phoneNumber").value;
+            const employmentInfo = document.getElementById("employmentInfo").value;
+            const requestedAmount = document.getElementById("requestedAmount").value;
+            const applicationDate = document.getElementById("applicationDate").value;
+
+            const applicationData = {
+                firstName: firstName,
+                lastName: lastName,
+                middleName: middleName,
+                passportNumber: passportNumber,
+                maritalStatus: maritalStatus,
+                registrationAddress: registrationAddress,
+                phoneNumber: phoneNumber,
+                employmentInfo: employmentInfo,
+                requestedAmount: parseFloat(requestedAmount),  
+                applicationDate: applicationDate 
+            };
+
+            fetch(`${apiBaseUrl}/applications`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(applicationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Заявка успешно отправлена!");
+                document.getElementById("applicationForm").reset();
+                console.log("Заявка добавлена:", data);
+            })
+            .catch(error => {
+                alert("Ошибка при отправке заявки!");
+                console.error("Ошибка при отправке заявки:", error);
+            });
+        });
+
+        // Функция для получения всех клиентов
+        function getClients() {
+            fetch(`${apiBaseUrl}/applications`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector("#clientsTable tbody");
+                    tableBody.innerHTML = '';
+                    data.forEach(client => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${client.firstName} ${client.lastName} ${client.middleName}</td><td>${client.phoneNumber}</td><td>${client.passportNumber}</td>`;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+
+
+        // Функция для получения заявок со статусом одобрения
+        function getApprovedApplications() {
+            fetch(`${apiBaseUrl}/applications/approved`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector("#applicationsTable tbody");
+                    tableBody.innerHTML = '';
+                    data.forEach(application => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `<td>${application.id}</td><td>${application.applicationDate}</td><td>${application.status}</td>`;
+                        tableBody.appendChild(row);
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
